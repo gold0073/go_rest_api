@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"goWeb/go-rest-api/src/api"
+	"go_rest_api/src/api"
 
 	"github.com/gorilla/mux"
 )

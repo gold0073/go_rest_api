@@ -2,12 +2,10 @@ package api
 
 import (
 	"encoding/json"
+	"go_rest_api/src/helpers"
+	"go_rest_api/src/models"
 	"net/http"
 	"strings"
-
-	"goWeb/go-rest-api/src/models"
-
-	"goWeb/go-rest-api/src/helpers"
 
 	"github.com/gorilla/mux"
 )
@@ -20,17 +18,17 @@ type Data struct {
 
 func CreateContent(w http.ResponseWriter, req *http.Request) {
 
-	bodyContent, sucess := helpers.DecodeBody(req)
+	bodyContent, success := helpers.DecodeBody(req)
 
-	if sucess != true {
+	if success != true {
 		http.Error(w, " could not decode body", http.StatusBadRequest)
 		return
 	}
 
 	var data Data = Data{Errors: make([]string, 0)}
-	bodyContent.Content = strings.TrimSpace(bodyContent.Content)
+	bodyContent.Description = strings.TrimSpace(bodyContent.Description)
 
-	if !helpers.IsValidDescription(bodyContent.content) {
+	if !helpers.IsValidDescription(bodyContent.Description) {
 		data.Success = false
 		data.Errors = append(data.Errors, "Invalid content")
 
@@ -42,7 +40,7 @@ func CreateContent(w http.ResponseWriter, req *http.Request) {
 
 	}
 
-	content, success := models.addContent(bodyContent.title, bodyContent.content)
+	content, success := models.(bodyContent.Description)
 
 	if success != true {
 		data.Errors = append(data.Errors, "could not create content")
@@ -60,9 +58,9 @@ func CreateContent(w http.ResponseWriter, req *http.Request) {
 }
 
 func GetContent(w http.ResponseWriter, req *http.Request) {
-	var todos []models.Todo = models.contentlist()
+	var contents []models.Content = models.contentlist()
 
-	var data = Data{true, todos, make([]string, 0)}
+	var data = Data{true, contents, make([]string, 0)}
 	json, _ := json.Marshal(data)
 
 	w.Header().Set("Content-Type", "application/json")
@@ -76,12 +74,12 @@ func GetContentDetail(w http.ResponseWriter, req *http.Request) {
 
 	var data Data
 
-	var todo models.Content
+	var content models.Content
 	var success bool
-	todo, success = models.contentlist_detail(id)
+	content, success = models.contentlist_detail(id)
 	if success != true {
 		data.Success = false
-		data.Errors = append(data.Errors, "todo not found")
+		data.Errors = append(data.Errors, "content not found")
 
 		json, _ := json.Marshal(data)
 
@@ -92,7 +90,7 @@ func GetContentDetail(w http.ResponseWriter, req *http.Request) {
 	}
 
 	data.Success = true
-	data.Data = append(data.Data, todo)
+	data.Data = append(data.Data, content)
 
 	json, _ := json.Marshal(data)
 
