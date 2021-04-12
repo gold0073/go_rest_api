@@ -11,56 +11,52 @@ import (
 )
 
 type Data struct {
-	Success bool             `json:"sucess"`
-	Data    []models.Content `json:"data"`
-	Errors  []string         `json:"errors"`
+	Success bool          `json:"success"`
+	Data    []models.Todo `json:"data"`
+	Errors  []string      `json:"errors"`
 }
 
-func CreateContent(w http.ResponseWriter, req *http.Request) {
-
-	bodyContent, success := helpers.DecodeBody(req)
-
+func CreateTodo(w http.ResponseWriter, req *http.Request) {
+	bodyTodo, success := helpers.DecodeBody(req)
 	if success != true {
-		http.Error(w, " could not decode body", http.StatusBadRequest)
+		http.Error(w, "could not decode body", http.StatusBadRequest)
 		return
 	}
 
 	var data Data = Data{Errors: make([]string, 0)}
-	bodyContent.Description = strings.TrimSpace(bodyContent.Description)
-
-	if !helpers.IsValidDescription(bodyContent.Description) {
+	bodyTodo.Description = strings.TrimSpace(bodyTodo.Description)
+	if !helpers.IsValidDescription(bodyTodo.Description) {
 		data.Success = false
-		data.Errors = append(data.Errors, "Invalid content")
+		data.Errors = append(data.Errors, "invalid description")
 
 		json, _ := json.Marshal(data)
+
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		w.Write(json)
 		return
-
 	}
 
-	content, success := models.(bodyContent.Description)
-
+	todo, success := models.Insert(bodyTodo.Description)
 	if success != true {
-		data.Errors = append(data.Errors, "could not create content")
+		data.Errors = append(data.Errors, "could not create todo")
 	}
 
-	data.Success = true
-	data.Data = append(data.Data, content)
+	data.Success = success
+	data.Data = append(data.Data, todo)
 
 	json, _ := json.Marshal(data)
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(json)
 	return
-
 }
 
-func GetContent(w http.ResponseWriter, req *http.Request) {
-	var contents []models.Content = models.contentlist()
+func GetTodos(w http.ResponseWriter, req *http.Request) {
+	var todos []models.Todo = models.GetAll()
 
-	var data = Data{true, contents, make([]string, 0)}
+	var data = Data{true, todos, make([]string, 0)}
 	json, _ := json.Marshal(data)
 
 	w.Header().Set("Content-Type", "application/json")
@@ -68,18 +64,58 @@ func GetContent(w http.ResponseWriter, req *http.Request) {
 	w.Write(json)
 }
 
-func GetContentDetail(w http.ResponseWriter, req *http.Request) {
+func UpdateTodo(w http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
-	id := vars["content_id"]
+	todo_id := vars["id"]
+
+	bodyTodo, success := helpers.DecodeBody(req)
+	if success != true {
+		http.Error(w, "could not decode body", http.StatusBadRequest)
+		return
+	}
+
+	var data Data = Data{Errors: make([]string, 0)}
+	bodyTodo.Description = strings.TrimSpace(bodyTodo.Description)
+	if !helpers.IsValidDescription(bodyTodo.Description) {
+		data.Success = false
+		data.Errors = append(data.Errors, "invalid description")
+
+		json, _ := json.Marshal(data)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(json)
+		return
+	}
+
+	todo, success := models.Update(todo_id, bodyTodo.Description)
+	if success != true {
+		data.Errors = append(data.Errors, "could not update todo")
+	}
+
+	data.Success = success
+	data.Data = append(data.Data, todo)
+
+	json, _ := json.Marshal(data)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(json)
+	return
+}
+
+func GetTodo(w http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	id := vars["id"]
 
 	var data Data
 
-	var content models.Content
+	var todo models.Todo
 	var success bool
-	content, success = models.contentlist_detail(id)
+	todo, success = models.Get(id)
 	if success != true {
 		data.Success = false
-		data.Errors = append(data.Errors, "content not found")
+		data.Errors = append(data.Errors, "todo not found")
 
 		json, _ := json.Marshal(data)
 
@@ -90,7 +126,28 @@ func GetContentDetail(w http.ResponseWriter, req *http.Request) {
 	}
 
 	data.Success = true
-	data.Data = append(data.Data, content)
+	data.Data = append(data.Data, todo)
+
+	json, _ := json.Marshal(data)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(json)
+}
+
+func DeleteTodo(w http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	id := vars["id"]
+
+	var data Data = Data{Errors: make([]string, 0)}
+
+	todo, success := models.Delete(id)
+	if success != true {
+		data.Errors = append(data.Errors, "could not delete todo")
+	}
+
+	data.Success = success
+	data.Data = append(data.Data, todo)
 
 	json, _ := json.Marshal(data)
 

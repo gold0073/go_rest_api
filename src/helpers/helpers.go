@@ -7,14 +7,14 @@ import (
 	"strings"
 )
 
-func DecodeBody(req *http.Request) (models.Content, bool) {
-	var content models.Content
-	err := json.NewDecoder(req.Body).Decode(&content)
+func DecodeBody(req *http.Request) (models.Todo, bool) {
+	var todo models.Todo
+	err := json.NewDecoder(req.Body).Decode(&todo)
 	if err != nil {
-		return models.Content{}, false
+		return models.Todo{}, false
 	}
 
-	return content, true
+	return todo, true
 }
 
 func IsValidDescription(description string) bool {

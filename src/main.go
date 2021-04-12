@@ -10,20 +10,17 @@ import (
 )
 
 func main() {
-	//db := database.GetConnection()
-	//fmt.Printf("Hello World")
-
-	var port string = "15432"
+	var port string = "8080"
 
 	router := mux.NewRouter()
 	apiRouter := router.PathPrefix("/api/").Subrouter()
-	apiRouter.HandleFunc("/ms-addContent", api.CreateContent).Methods("POST")
+	apiRouter.HandleFunc("/todos", api.GetTodos).Methods("GET")
+	apiRouter.HandleFunc("/todos", api.CreateTodo).Methods("POST")
 
-	//Search list
-	apiRouter.HandleFunc("/ms-contentlist", api.GetContent).Methods("GET")
-	//Search Id
-	apiRouter.HandleFunc("/ms-contentlist/{content_id}", api.GetContentDetail).Methods("GET")
+	apiRouter.HandleFunc("/todos/{id}", api.GetTodo).Methods("GET")
+	apiRouter.HandleFunc("/todos/{id}", api.DeleteTodo).Methods("DELETE")
+	apiRouter.HandleFunc("/todos/{id}", api.UpdateTodo).Methods("PUT")
 
-	fmt.Printf("Server runing at port %s", port)
+	fmt.Printf("Server running at port %s", port)
 	http.ListenAndServe(":"+port, router)
 }
