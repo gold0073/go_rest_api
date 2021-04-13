@@ -5,14 +5,12 @@ import (
 	"log"
 )
 
-//Todo ...
 type Todo struct {
 	ID          int    `json:"id"`
 	Description string `json:"description"`
 }
 
-//Insert ...
-func TodoInsert(description string) (Todo, bool) {
+func Insert(description string) (Todo, bool) {
 	db := database.GetConnection()
 
 	var todo_id int
@@ -25,7 +23,7 @@ func TodoInsert(description string) (Todo, bool) {
 	return Todo{todo_id, ""}, true
 }
 
-func TodoGet(id string) (Todo, bool) {
+func Get(id string) (Todo, bool) {
 	db := database.GetConnection()
 	row := db.QueryRow("SELECT * FROM todos WHERE id = $1", id)
 
@@ -39,7 +37,7 @@ func TodoGet(id string) (Todo, bool) {
 	return Todo{ID, description}, true
 }
 
-func TodoDelete(id string) (Todo, bool) {
+func Delete(id string) (Todo, bool) {
 	db := database.GetConnection()
 
 	var todo_id int
@@ -51,7 +49,7 @@ func TodoDelete(id string) (Todo, bool) {
 	return Todo{todo_id, ""}, true
 }
 
-func TodoUpdate(id string, description string) (Todo, bool) {
+func Update(id string, description string) (Todo, bool) {
 	db := database.GetConnection()
 
 	var todo_id int
@@ -63,7 +61,7 @@ func TodoUpdate(id string, description string) (Todo, bool) {
 	return Todo{todo_id, description}, true
 }
 
-func TodoGetAll() []Todo {
+func GetAll() []Todo {
 	db := database.GetConnection()
 	rows, err := db.Query("SELECT * FROM todos ORDER BY id")
 	if err != nil {

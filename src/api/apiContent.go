@@ -2,9 +2,12 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"go_rest_api/src/models"
 	"net/http"
 	"strings"
+
+	"github.com/gorilla/mux"
 )
 
 type Content struct {
@@ -14,8 +17,9 @@ type Content struct {
 }
 
 func CreateContent(w http.ResponseWriter, req *http.Request) {
-	var content models.Content
-	err := json.NewDecoder(req.Body).Decode(&content)
+	var contents models.Content
+
+	err := json.NewDecoder(req.Body).Decode(&contents)
 
 	if err != nil {
 		http.Error(w, "could not decode body", http.StatusBadRequest)
@@ -23,10 +27,10 @@ func CreateContent(w http.ResponseWriter, req *http.Request) {
 	}
 
 	var data Content = Content{Errors: make([]string, 0)}
-	content.Title = strings.TrimSpace(content.Title)
-	content.Context = strings.TrimSpace(content.Context)
+	contents.Title = strings.TrimSpace(contents.Title)
+	contents.Context = strings.TrimSpace(contents.Context)
 
-	content, success := models.addContent(content.Title, content.Context)
+	content, success := models.AddContent(contents.Title, contents.Context)
 
 	if success != true {
 		data.Errors = append(data.Errors, "could not create content")
@@ -43,56 +47,15 @@ func CreateContent(w http.ResponseWriter, req *http.Request) {
 	return
 }
 
-/*
 func GetContents(w http.ResponseWriter, req *http.Request) {
-	var todos []models.Todo = models.GetAll()
+	var contents []models.Content = models.GetContentlist()
 
-	var data = Content{true, todos, make([]string, 0)}
+	var data = Content{true, contents, make([]string, 0)}
 	json, _ := json.Marshal(data)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(json)
-}
-
-func UpdateContent(w http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
-	todo_id := vars["id"]
-
-	bodyTodo, success := helpers.DecodeBody(req)
-	if success != true {
-		http.Error(w, "could not decode body", http.StatusBadRequest)
-		return
-	}
-
-	var data Content = Content{Errors: make([]string, 0)}
-	bodyTodo.Description = strings.TrimSpace(bodyTodo.Description)
-	if !helpers.IsValidDescription(bodyTodo.Description) {
-		data.Success = false
-		data.Errors = append(data.Errors, "invalid description")
-
-		json, _ := json.Marshal(data)
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		w.Write(json)
-		return
-	}
-
-	todo, success := models.Update(todo_id, bodyTodo.Description)
-	if success != true {
-		data.Errors = append(data.Errors, "could not update todo")
-	}
-
-	data.Success = success
-	data.Content = append(data.Content, todo)
-
-	json, _ := json.Marshal(data)
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(json)
-	return
 }
 
 func GetContent(w http.ResponseWriter, req *http.Request) {
@@ -101,12 +64,13 @@ func GetContent(w http.ResponseWriter, req *http.Request) {
 
 	var data Content
 
-	var todo models.Todo
-	var success bool
-	todo, success = models.Get(id)
+	//var content models.Content
+	//var success bool
+	content, success := models.GetContentDetail(id)
+
 	if success != true {
 		data.Success = false
-		data.Errors = append(data.Errors, "todo not found")
+		data.Errors = append(data.Errors, "content not found")
 
 		json, _ := json.Marshal(data)
 
@@ -117,7 +81,7 @@ func GetContent(w http.ResponseWriter, req *http.Request) {
 	}
 
 	data.Success = true
-	data.Content = append(data.Content, todo)
+	data.Data = append(data.Data, content)
 
 	json, _ := json.Marshal(data)
 
@@ -126,19 +90,19 @@ func GetContent(w http.ResponseWriter, req *http.Request) {
 	w.Write(json)
 }
 
-func DeleteConntent(w http.ResponseWriter, req *http.Request) {
+func DeleteContent(w http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	id := vars["id"]
 
 	var data Content = Content{Errors: make([]string, 0)}
 
-	todo, success := models.Delete(id)
+	content, success := models.RemoveContent(id)
 	if success != true {
-		data.Errors = append(data.Errors, "could not delete todo")
+		data.Errors = append(data.Errors, "could not delete content")
 	}
 
-	data.Success = success
-	data.Content = append(data.Content, todo)
+	data.Success = true
+	data.Data = append(data.Data, content)
 
 	json, _ := json.Marshal(data)
 
@@ -146,4 +110,38 @@ func DeleteConntent(w http.ResponseWriter, req *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write(json)
 }
-*/
+
+func UpdateContent(w http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	content_id := vars["id"]
+
+	var contents models.Content
+	err := json.NewDecoder(req.Body).Decode(&contents)
+	if err != nil {
+		http.Error(w, "could not decode body", http.StatusBadRequest)
+		return
+	}
+
+	var data Content = Content{Errors: make([]string, 0)}
+	contents.Title = strings.TrimSpace(contents.Title)
+	contents.Context = strings.TrimSpace(contents.Context)
+
+	fmt.Println("content_id ===>" + content_id)
+	fmt.Println(contents.Title)
+	fmt.Println(contents.Context)
+
+	content, success := models.EditContent(content_id, contents.Title, contents.Context)
+	if success != true {
+		data.Errors = append(data.Errors, "could not update todo")
+	}
+
+	data.Success = success
+	data.Data = append(data.Data, content)
+
+	json, _ := json.Marshal(data)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(json)
+	return
+}
